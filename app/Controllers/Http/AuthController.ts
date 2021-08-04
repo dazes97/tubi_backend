@@ -10,7 +10,7 @@ export default class AuthController {
     const remember = request.input('remember')
     try {
       const token = await auth.use('api').attempt(email, password, {
-        expiresIn: remember ? '30days' : '60min',
+        expiresIn: remember ? '30days' : '1day',
         name: email,
       })
       const user = await User.findByOrFail('email', email)
