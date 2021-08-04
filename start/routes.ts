@@ -22,6 +22,10 @@ Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.resource('personal-type', 'PersonalTypesController').apiOnly()
+Route.group(() => {
+  Route.resource('personalType', 'PersonalTypesController').apiOnly()
+}).middleware('auth')
+Route.post('auth', 'AuthController.auth')
+Route.post('logout', 'AuthController.logout')
 Route.resource('users', 'UsersController').apiOnly()
 Route.resource('personals', 'PersonalsController').apiOnly()
