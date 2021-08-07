@@ -29,7 +29,6 @@ export default class AuthController {
     }
   }
   public async logout({ auth }) {
-    console.log('entro al logout')
     await auth.use('api').revoke()
     return {
       revoked: true,
