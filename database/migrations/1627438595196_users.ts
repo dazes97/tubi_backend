@@ -10,7 +10,7 @@ export default class Users extends BaseSchema {
       table.string('password').notNullable()
       table.string('name').notNullable()
       table.string('last_name').notNullable()
-      table.string('gender')
+      table.string('gender', 2).notNullable().defaultTo('-1')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

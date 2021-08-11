@@ -9,6 +9,7 @@ export default class Companies extends BaseSchema {
       table.string('name').notNullable()
       table.string('nit').notNullable()
       table.string('main_address').notNullable()
+      table.string('status', 2).notNullable().defaultTo('1')
 
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL

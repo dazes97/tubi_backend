@@ -6,7 +6,7 @@ export default class PersonalsController {
       const personals = await Personal.query().preload('user').preload('personalType')
       return response.ok({ data: personals })
     } catch (e) {
-      console.log('index Personal: ', e)
+      console.log('PersonalsController.index: ', e)
       return response.internalServerError()
     }
   }
@@ -16,13 +16,10 @@ export default class PersonalsController {
       const personal = await Personal.createPersonal(request.body(), auth.user)
       return response.ok(personal)
     } catch (e) {
-      console.log('store Personal: ', e)
+      console.log('PersonalsController.store: ', e)
       return response.internalServerError()
     }
   }
-  public async show({}: HttpContextContract) {}
-
-  public async edit({}: HttpContextContract) {}
 
   public async update({ request, response }: HttpContextContract) {
     try {
@@ -30,10 +27,11 @@ export default class PersonalsController {
       const personal = await Personal.updatePersonal(request.body(), id)
       return response.ok({ data: personal })
     } catch (e) {
-      console.log('update Personal: ', e)
+      console.log('PersonalsController.update: ', e)
       return response.internalServerError()
     }
   }
+
   public async destroy({ request, response }: HttpContextContract) {
     try {
       const id = request.param('id')
@@ -41,7 +39,7 @@ export default class PersonalsController {
       const deletedPersonal = await personal.delete()
       return response.ok({ data: deletedPersonal })
     } catch (e) {
-      console.log('delete Personal: ', e)
+      console.log('personalsController.destroy: ', e)
       return response.internalServerError()
     }
   }

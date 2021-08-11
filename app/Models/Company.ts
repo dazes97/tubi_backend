@@ -13,13 +13,16 @@ export default class Company extends BaseModel {
   @column()
   public nit: string
 
-  @column()
+  @column({ serializeAs: 'mainAddress' })
   public mainAddress: string
 
-  @column.dateTime({ autoCreate: true })
+  @column()
+  public status: string
+
+  @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
 
   @hasMany(() => PersonalType)
