@@ -6,11 +6,11 @@ export default class Users extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
-      table.string('email')
-      table.string('password')
-      table.string('name')
-      table.string('last_name')
-      table.string('gender').nullable()
+      table.string('email').unique().notNullable()
+      table.string('password').notNullable()
+      table.string('name').notNullable()
+      table.string('last_name').notNullable()
+      table.string('gender')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

@@ -24,6 +24,7 @@ Route.get('/', async () => {
 
 Route.group(() => {
   Route.resource('personalType', 'PersonalTypesController').apiOnly()
+  Route.resource('personal', 'PersonalsController').apiOnly()
 }).middleware('auth')
 Route.post('auth', 'AuthController.auth')
 Route.post('logout', 'AuthController.logout')

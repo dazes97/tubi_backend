@@ -6,14 +6,14 @@ export default class Personals extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
-      table.string('dni')
-      table.string('address')
-      table.date('born_date')
+      table.string('dni').notNullable()
+      table.string('address').notNullable()
+      table.date('born_date').notNullable()
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
-      table.integer('personal_type_id').unsigned().references('personal_types.id')
-      table.integer('company_id').unsigned().references('companies.id')
+      table.integer('personal_type_id').unsigned().references('personal_types.id').notNullable()
+      table.integer('company_id').unsigned().references('companies.id').notNullable()
       table.timestamp('created_at', { useTz: false })
       table.timestamp('updated_at', { useTz: false })
       table.timestamp('deleted_at', { useTz: false })
