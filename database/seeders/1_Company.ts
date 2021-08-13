@@ -6,6 +6,11 @@ export default class CompanySeeder extends BaseSeeder {
     // Write your database queries inside the run method
     await Company.createMany([
       {
+        name: 'Dsoft Bolivia',
+        nit: '11350212',
+        mainAddress: 'Anonymous',
+      },
+      {
         name: 'Tu Bicicleta Bolivia',
         nit: '123',
         mainAddress: 'Av. Cumavi',

@@ -65,10 +65,9 @@ export default class Personal extends BaseModel {
     query.whereNull('deleted_at')
   }
 
-  @beforeDelete()
-  public static async handleSoftDeletion(personal: Personal) {
-    personal.deletedAt = DateTime.local()
-    await personal.save()
+  public async delete() {
+    this.deletedAt = DateTime.local()
+    await this.save()
   }
   public static async createPersonal(requestBody: any, userInfo: any) {
     const personalId = userInfo?.id
@@ -100,7 +99,6 @@ export default class Personal extends BaseModel {
     })
   }
   public static async updatePersonal(requestBody: any, id: any) {
-    console.log('requestbody: ', requestBody)
     await Database.transaction(async (trx) => {
       const user = await User.findOrFail(id)
       user.name = requestBody.name

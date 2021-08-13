@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import {
   BaseModel,
-  beforeDelete,
   beforeFetch,
   beforeFind,
   BelongsTo,
@@ -43,10 +42,9 @@ export default class PersonalType extends BaseModel {
     query.whereNull('deleted_at')
   }
 
-  @beforeDelete()
-  public static async handleSoftDeletion(personalType: PersonalType) {
-    personalType.deletedAt = DateTime.local()
-    await personalType.save()
+  public async delete() {
+    this.deletedAt = DateTime.local()
+    await this.save()
   }
 
   @hasMany(() => Personal)

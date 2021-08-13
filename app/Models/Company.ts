@@ -1,5 +1,13 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, HasMany, hasMany } from '@ioc:Adonis/Lucid/Orm'
+import {
+  BaseModel,
+  beforeFetch,
+  beforeFind,
+  column,
+  HasMany,
+  hasMany,
+  ModelQueryBuilderContract,
+} from '@ioc:Adonis/Lucid/Orm'
 import PersonalType from './PersonalType'
 import Personal from './Personal'
 
@@ -25,9 +33,27 @@ export default class Company extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
 
+  @column.dateTime()
+  public deletedAt: DateTime
+
   @hasMany(() => PersonalType)
   public personalTypes: HasMany<typeof PersonalType>
 
   @hasMany(() => Personal)
   public personals: HasMany<typeof Personal>
+
+  @beforeFind()
+  public static ignoreDeleted(query: ModelQueryBuilderContract<typeof Company>) {
+    query.whereNull('deleted_at')
+  }
+
+  @beforeFetch()
+  public static filterDeleted(query: ModelQueryBuilderContract<typeof Company>) {
+    query.whereNull('deleted_at')
+  }
+
+  public async delete() {
+    this.deletedAt = DateTime.local()
+    await this.save()
+  }
 }

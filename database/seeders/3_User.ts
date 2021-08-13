@@ -13,10 +13,17 @@ export default class UserSeeder extends BaseSeeder {
         gender: '-1',
       },
       {
-        email: 'roman@gmail.com',
+        email: 'abel@gmail.com',
         password: '12345678',
-        name: 'Roman',
-        lastName: 'Gomez',
+        name: 'Abel',
+        lastName: 'Zeballos',
+        gender: '-1',
+      },
+      {
+        email: 'israel@gmail.com',
+        password: '12345678',
+        name: 'Israel',
+        lastName: 'Zeballos',
         gender: '-1',
       },
     ])
