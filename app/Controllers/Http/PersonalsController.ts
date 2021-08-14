@@ -1,9 +1,15 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Personal from 'App/Models/Personal'
+import { ROLE_ID } from '../../utils//roleConstant'
 export default class PersonalsController {
-  public async index({ response }: HttpContextContract) {
+  public async index({ auth, response }: HttpContextContract) {
     try {
-      const personals = await Personal.query().preload('user').preload('personalType')
+      const personal = await Personal.findOrFail(auth.user?.id)
+      const personals = await Personal.query()
+        .where('companyId', personal.companyId)
+        .andWhere('personalTypeId', '!=', ROLE_ID.PROPIETARIO)
+        .preload('user')
+        .preload('personalType')
       return response.ok({ data: personals })
     } catch (e) {
       console.log('PersonalsController.index: ', e)
@@ -13,7 +19,8 @@ export default class PersonalsController {
 
   public async store({ request, response, auth }: HttpContextContract) {
     try {
-      const personal = await Personal.createPersonal(request.body(), auth.user)
+      if (!auth.user?.id) return response.internalServerError()
+      const personal = await Personal.createPersonal(request.body(), auth.user.id)
       return response.ok(personal)
     } catch (e) {
       console.log('PersonalsController.store: ', e)

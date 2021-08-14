@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon'
 import {
   BaseModel,
-  beforeDelete,
   beforeFetch,
   beforeFind,
   BelongsTo,
@@ -41,7 +40,7 @@ export default class Personal extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
 
-  @column.dateTime()
+  @column.dateTime({ serializeAs: null })
   public deletedAt: DateTime
 
   @belongsTo(() => PersonalType)
@@ -111,6 +110,53 @@ export default class Personal extends BaseModel {
 
       const personal = await Personal.findOrFail(id)
       //personal.dni = requestBody.dni
+      personal.address = requestBody.address
+      personal.bornDate = requestBody.bornDate
+      personal.personalTypeId = requestBody.personalTypeId
+      personal.useTransaction(trx)
+      return await personal.save()
+    })
+  }
+  public static async createCompanyOwner(requestBody: any) {
+    if (!requestBody.companyId) throw Error('Empresa no encontrada')
+    const userFoundByEmail = await User.findBy('email', requestBody.email)
+    if (userFoundByEmail) throw Error('correo duplicado')
+    const userFoundByDni = await Personal.findBy('dni', requestBody.dni)
+    if (userFoundByDni) throw Error('Dni duplicado')
+    await Database.transaction(async (trx) => {
+      const user = new User()
+      user.name = requestBody.name
+      user.lastName = requestBody.lastName
+      user.email = requestBody.email
+      user.password = requestBody.password
+      user.gender = requestBody.gender
+      user.useTransaction(trx)
+      const newUser = await user.save()
+
+      const personal = new Personal()
+      personal.id = newUser.id
+      personal.dni = requestBody.dni
+      personal.address = requestBody.address
+      personal.bornDate = requestBody.bornDate
+      personal.companyId = requestBody.companyId
+      personal.personalTypeId = requestBody.personalTypeId
+      personal.useTransaction(trx)
+      return await personal.save()
+    })
+  }
+  public static async updateCompanyOwner(requestBody: any, id: any) {
+    await Database.transaction(async (trx) => {
+      const user = await User.findOrFail(id)
+      user.name = requestBody.name
+      user.lastName = requestBody.lastName
+      user.email = requestBody.email
+      if (requestBody.password.length > 0) user.password = requestBody.password
+      user.gender = requestBody.gender
+      user.useTransaction(trx)
+      await user.save()
+
+      const personal = await Personal.findOrFail(id)
+      personal.dni = requestBody.dni
       personal.address = requestBody.address
       personal.bornDate = requestBody.bornDate
       personal.personalTypeId = requestBody.personalTypeId

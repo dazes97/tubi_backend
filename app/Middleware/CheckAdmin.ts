@@ -1,7 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Company from 'App/Models/Company'
 import Personal from 'App/Models/Personal'
-import { SUPER_ADMIN, ROLE_ID } from './roleConstant'
+import { SUPER_ADMIN, ROLE_ID } from '../utils/roleConstant'
 export default class CheckAdmin {
   public async handle({ auth, response }: HttpContextContract, next: () => Promise<void>) {
     if (!auth.user?.id) return response.unauthorized({ error: 'Not Authorized' })

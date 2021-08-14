@@ -1,10 +1,17 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Personal from 'App/Models/Personal'
 import PersonalType from 'App/Models/PersonalType'
+import { ROLE_ID } from 'App/utils/roleConstant'
 export default class PersonalTypesController {
-  public async index({ response }: HttpContextContract) {
+  public async index({ auth, response }: HttpContextContract) {
     try {
-      const personalTypes = await PersonalType.all()
+      let personalTypes
+      const personalWhoIsAsking = await Personal.findOrFail(auth.user?.id)
+      if (personalWhoIsAsking.companyId === ROLE_ID.PROPIETARIO) {
+        personalTypes = await PersonalType.all()
+      } else {
+        personalTypes = await PersonalType.query().where('id', '!=', ROLE_ID.PROPIETARIO)
+      }
       return response.ok({ data: personalTypes })
     } catch (e) {
       console.log('PersonalTypeController.index: ', e)

@@ -33,7 +33,7 @@ export default class Company extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime
 
-  @column.dateTime()
+  @column.dateTime({ serializeAs: null })
   public deletedAt: DateTime
 
   @hasMany(() => PersonalType)
