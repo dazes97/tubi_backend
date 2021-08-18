@@ -8,20 +8,20 @@ export default class CompanyOwnersController {
         .preload('user')
         .preload('personalType')
         .preload('company')
-      return response.ok({ data: companyOwners })
+      response.ok({ data: companyOwners })
     } catch (e) {
       console.log('CompanyOwnersController.index: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 
   public async store({ request, response }: HttpContextContract) {
     try {
       const companyOwner = await Personal.createCompanyOwner(request.body())
-      return response.ok(companyOwner)
+      response.ok(companyOwner)
     } catch (e) {
       console.log('CompanyOwnersController.store: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 
@@ -29,22 +29,22 @@ export default class CompanyOwnersController {
     try {
       const id = request.param('id')
       const companyOwner = await Personal.updateCompanyOwner(request.body(), id)
-      return response.ok({ data: companyOwner })
+      response.ok({ data: companyOwner })
     } catch (e) {
       console.log('CompanyOwnersController.update: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 
-  public async destroy({ request, response }: HttpContextContract) {
+  public async destroy({ request, response, auth }: HttpContextContract) {
     try {
       const id = request.param('id')
       const companyOwner = await Personal.findOrFail(id)
       const deletedCompanyOwner = await companyOwner.delete()
-      return response.ok({ data: deletedCompanyOwner })
+      response.ok({ data: deletedCompanyOwner })
     } catch (e) {
       console.log('CompanyOwnersController.destroy: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 }

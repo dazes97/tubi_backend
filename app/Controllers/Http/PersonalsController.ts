@@ -4,50 +4,50 @@ import { ROLE_ID } from '../../utils//roleConstant'
 export default class PersonalsController {
   public async index({ auth, response }: HttpContextContract) {
     try {
-      const personal = await Personal.findOrFail(auth.user?.id)
+      const companyId = await Personal.getCompanyId(auth.user?.id)
       const personals = await Personal.query()
-        .where('companyId', personal.companyId)
+        .where('companyId', companyId)
         .andWhere('personalTypeId', '!=', ROLE_ID.PROPIETARIO)
         .preload('user')
         .preload('personalType')
-      return response.ok({ data: personals })
+      response.ok({ data: personals })
     } catch (e) {
       console.log('PersonalsController.index: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 
   public async store({ request, response, auth }: HttpContextContract) {
     try {
-      if (!auth.user?.id) return response.internalServerError()
-      const personal = await Personal.createPersonal(request.body(), auth.user.id)
-      return response.ok(personal)
+      const personal = await Personal.createPersonal(request.body(), auth.user?.id)
+      response.ok(personal)
     } catch (e) {
       console.log('PersonalsController.store: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 
-  public async update({ request, response }: HttpContextContract) {
+  public async update({ request, auth, response }: HttpContextContract) {
     try {
       const id = request.param('id')
-      const personal = await Personal.updatePersonal(request.body(), id)
-      return response.ok({ data: personal })
+      const personal = await Personal.updatePersonal(request.body(), id, auth.user?.id)
+      response.ok({ data: personal })
     } catch (e) {
       console.log('PersonalsController.update: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 
-  public async destroy({ request, response }: HttpContextContract) {
+  public async destroy({ request, response, auth }: HttpContextContract) {
     try {
       const id = request.param('id')
-      const personal = await Personal.findOrFail(id)
+      const companyId = await Personal.getCompanyId(auth.user?.id)
+      const personal = await Personal.findPersonalByCompany(id, companyId)
       const deletedPersonal = await personal.delete()
-      return response.ok({ data: deletedPersonal })
+      response.ok({ data: deletedPersonal })
     } catch (e) {
       console.log('personalsController.destroy: ', e)
-      return response.internalServerError()
+      response.internalServerError()
     }
   }
 }

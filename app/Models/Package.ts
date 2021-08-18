@@ -3,17 +3,17 @@ import {
   BaseModel,
   beforeFetch,
   beforeFind,
+  BelongsTo,
+  belongsTo,
   column,
-  HasMany,
-  hasMany,
+  ManyToMany,
+  manyToMany,
   ModelQueryBuilderContract,
 } from '@ioc:Adonis/Lucid/Orm'
-import PersonalType from './PersonalType'
-import Personal from './Personal'
-import Package from './Package'
 import Service from './Service'
+import Company from './Company'
 
-export default class Company extends BaseModel {
+export default class Package extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
@@ -21,13 +21,16 @@ export default class Company extends BaseModel {
   public name: string
 
   @column()
-  public nit: string
+  public price: number
 
-  @column({ serializeAs: 'mainAddress' })
-  public mainAddress: string
+  @column()
+  public description: string
 
   @column()
   public status: string
+
+  @column({ serializeAs: 'companyId' })
+  public companyId: number
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
@@ -38,30 +41,24 @@ export default class Company extends BaseModel {
   @column.dateTime({ serializeAs: null })
   public deletedAt: DateTime
 
-  @hasMany(() => PersonalType)
-  public personalTypes: HasMany<typeof PersonalType>
-
-  @hasMany(() => Personal)
-  public personals: HasMany<typeof Personal>
-
-  @hasMany(() => Package)
-  public packages: HasMany<typeof Package>
-
-  @hasMany(() => Service)
-  public services: HasMany<typeof Service>
-
   @beforeFind()
-  public static ignoreDeleted(query: ModelQueryBuilderContract<typeof Company>) {
+  public static ignoreDeleted(query: ModelQueryBuilderContract<typeof Package>) {
     query.whereNull('deleted_at')
   }
 
   @beforeFetch()
-  public static filterDeleted(query: ModelQueryBuilderContract<typeof Company>) {
+  public static filterDeleted(query: ModelQueryBuilderContract<typeof Package>) {
     query.whereNull('deleted_at')
   }
 
-  public async delete() {
+  public async delete(): Promise<void> {
     this.deletedAt = DateTime.local()
     await this.save()
   }
+
+  @belongsTo(() => Company)
+  public company: BelongsTo<typeof Company>
+
+  @manyToMany(() => Service)
+  public services: ManyToMany<typeof Service>
 }
