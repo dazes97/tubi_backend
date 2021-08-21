@@ -17,7 +17,7 @@ export default class CompaniesController {
       const company = await Company.create(request.body())
       response.ok({ data: company })
     } catch (e) {
-      console.log('CompanyController.store: ', e)
+      console.log('companiesController.store: ', e)
       response.internalServerError()
     }
   }
@@ -29,7 +29,7 @@ export default class CompaniesController {
       const updatedCompany = await company.merge(request.body()).save()
       response.ok({ data: updatedCompany })
     } catch (e) {
-      console.log('PersonalTypeController.update: ', e)
+      console.log('companiesController.update: ', e)
       response.internalServerError()
     }
   }
@@ -41,7 +41,7 @@ export default class CompaniesController {
       const deletedCompany = await company.delete()
       response.ok({ data: deletedCompany })
     } catch (e) {
-      console.log('CompanyController.destroy: ', e)
+      console.log('companiesController.destroy: ', e)
       response.internalServerError()
     }
   }
