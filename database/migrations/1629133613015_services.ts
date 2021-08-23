@@ -10,6 +10,7 @@ export default class Services extends BaseSchema {
       table.decimal('price').notNullable()
       table.text('description').defaultTo('')
       table.string('status', 1).defaultTo('1').notNullable()
+      table.string('type', 1).notNullable()
       table.integer('company_id').unsigned().references('companies.id').notNullable()
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL

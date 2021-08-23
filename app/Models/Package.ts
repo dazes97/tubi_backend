@@ -14,6 +14,7 @@ import Service from './Service'
 import Company from './Company'
 import Personal from './Personal'
 import Database from '@ioc:Adonis/Lucid/Database'
+import SERVICE_TYPE from 'App/utils/serviceType'
 
 export default class Package extends BaseModel {
   @column({ isPrimary: true })
@@ -60,19 +61,20 @@ export default class Package extends BaseModel {
   @belongsTo(() => Company)
   public company: BelongsTo<typeof Company>
 
-  @manyToMany(() => Service)
-  public services: ManyToMany<typeof Service>
+  // @manyToMany(() => Service)
+  // public services: ManyToMany<typeof Service>
 
   public static async createPackage(body: any, authId: any) {
     return await Database.transaction(async (trx) => {
       try {
         const companyId = await Personal.getCompanyId(authId)
-        const packageForCreation = new Package()
+        const packageForCreation = new Service()
         packageForCreation.name = body.name
         packageForCreation.price = body.price
         packageForCreation.description = body.description
         packageForCreation.status = body.status
         packageForCreation.companyId = companyId
+        packageForCreation.type = SERVICE_TYPE.PACKAGE
         packageForCreation.useTransaction(trx)
         const newPackage = await packageForCreation.save()
         for (let i = 0; i < body.services.length; i++) {
@@ -94,8 +96,9 @@ export default class Package extends BaseModel {
     return await Database.transaction(async (trx) => {
       try {
         const companyId = await Personal.getCompanyId(authId)
-        const packageToUpdate = await Package.query()
+        const packageToUpdate = await Service.query()
           .where('id', body.id)
+          .andWhere('type', SERVICE_TYPE.PACKAGE)
           .andWhere('companyId', companyId)
           .andWhereNull('deletedAt')
           .firstOrFail()
@@ -133,8 +136,9 @@ export default class Package extends BaseModel {
     return Database.transaction(async (trx) => {
       try {
         const companyId = await Personal.getCompanyId(authId)
-        const packageToDelete = await Package.query()
+        const packageToDelete = await Service.query()
           .where('id', packageId)
+          .andWhere('type', SERVICE_TYPE.PACKAGE)
           .andWhere('companyId', companyId)
           .andWhereNull('deletedAt')
           .firstOrFail()

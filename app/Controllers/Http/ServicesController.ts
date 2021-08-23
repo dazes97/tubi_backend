@@ -1,6 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Personal from 'App/Models/Personal'
 import Service from 'App/Models/Service'
+import SERVICE_TYPE from 'App/utils/serviceType'
 
 export default class ServicesController {
   public async index({ auth, response }: HttpContextContract) {
@@ -8,6 +9,7 @@ export default class ServicesController {
       const companyId = await Personal.getCompanyId(auth.user?.id)
       const services = await Service.query()
         .where('companyId', companyId)
+        .andWhere('type', 1)
         .orderBy('createdAt', 'desc')
       response.ok({ data: services })
     } catch (e) {
@@ -19,7 +21,11 @@ export default class ServicesController {
   public async store({ request, auth, response }: HttpContextContract) {
     try {
       const companyId = await Personal.getCompanyId(auth.user?.id)
-      const serviceCreated = await Service.create({ ...request.body(), companyId })
+      const serviceCreated = await Service.create({
+        ...request.body(),
+        companyId,
+        type: SERVICE_TYPE.SERVICE,
+      })
       response.ok({ data: serviceCreated })
     } catch (e) {
       console.log('ServicesController.store: ', e)

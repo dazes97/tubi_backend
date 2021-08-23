@@ -6,9 +6,10 @@ export default class ServicePackageSeeder extends BaseSeeder {
     await Database.insertQuery()
       .table('package_service')
       .insert([
-        { package_id: 1, service_id: 1 },
-        { package_id: 1, service_id: 2 },
-        { package_id: 2, service_id: 1 },
+        { package_id: 4, service_id: 1 },
+        { package_id: 4, service_id: 2 },
+        { package_id: 5, service_id: 1 },
+        { package_id: 5, service_id: 3 },
       ])
   }
 }
