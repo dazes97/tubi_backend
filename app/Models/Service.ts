@@ -160,6 +160,7 @@ export default class Service extends BaseModel {
           .andWhere('companyId', companyId)
           .andWhereNull('deletedAt')
           .firstOrFail()
+        packageToDelete.useTransaction(trx)
         const serviceFromThisPackage = await trx
           .query()
           .from('package_service')
@@ -173,8 +174,9 @@ export default class Service extends BaseModel {
             .andWhere('service_id', serviceFromThisPackage[i].serviceId)
             .delete()
         }
+        const packageDeleted = await packageToDelete.delete()
         await trx.commit()
-        return await packageToDelete.delete()
+        return packageDeleted
       } catch (e) {
         console.log('Package.deletePackage: ', e)
         trx.rollback()

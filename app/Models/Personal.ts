@@ -14,6 +14,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import PersonalType from './PersonalType'
 import Company from './Company'
 import User from './User'
+import Branch from './Branch'
 
 export default class Personal extends BaseModel {
   @column({ isPrimary: true })
@@ -34,6 +35,9 @@ export default class Personal extends BaseModel {
   @column({ serializeAs: 'personalTypeId' })
   public personalTypeId: number
 
+  @column({ serializeAs: 'branchId' })
+  public branchId: number
+
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
@@ -48,6 +52,9 @@ export default class Personal extends BaseModel {
 
   @belongsTo(() => Company)
   public company: BelongsTo<typeof Company>
+
+  @belongsTo(() => Branch)
+  public branch: BelongsTo<typeof Branch>
 
   @hasOne(() => User, {
     foreignKey: 'id',
@@ -68,14 +75,13 @@ export default class Personal extends BaseModel {
     this.deletedAt = DateTime.local()
     await this.save()
   }
-  public static async createPersonal(requestBody: any, userInfo: any) {
-    const personalId = userInfo?.id
-    if (!personalId) throw Error('nose encontro el personal')
+  public static async createPersonal(requestBody: any, authId: any) {
+    if (!authId) throw Error('nose encontro el personal')
     const userFoundByEmail = await User.findBy('email', requestBody.email)
     if (userFoundByEmail) throw Error('correo duplicado')
     const userFoundByDni = await Personal.findBy('dni', requestBody.dni)
     if (userFoundByDni) throw Error('Dni duplicado')
-    const companyId = await this.getCompanyId(personalId)
+    const companyId = await this.getCompanyId(authId)
     await Database.transaction(async (trx) => {
       const user = new User()
       user.name = requestBody.name
@@ -93,6 +99,7 @@ export default class Personal extends BaseModel {
       personal.bornDate = requestBody.bornDate
       personal.companyId = companyId
       personal.personalTypeId = requestBody.personalTypeId
+      personal.branchId = requestBody.branchId
       personal.useTransaction(trx)
       return await personal.save()
     })
@@ -119,6 +126,7 @@ export default class Personal extends BaseModel {
       personal.address = requestBody.address
       personal.bornDate = requestBody.bornDate
       personal.personalTypeId = requestBody.personalTypeId
+      personal.branchId = requestBody.branchId
       personal.useTransaction(trx)
       return await personal.save()
     })

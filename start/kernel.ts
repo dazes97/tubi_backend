@@ -40,8 +40,8 @@ Server.middleware.register([() => import('@ioc:Adonis/Core/BodyParser')])
 */
 Server.middleware.registerNamed({
   auth: () => import('App/Middleware/Auth'),
-  companyStatusCheck: () => import('App/Middleware/CheckCompanyStatus'),
-  checkAdmin: () => import('app/Middleware/CheckAdmin'),
-  checkCompanyOwner: () => import('app/Middleware/CheckCompanyOwner'),
-  checkPersonal: () => import('app/Middleware/CheckCompanyPersonal'),
+  checkCompanyStatus: () => import('App/Middleware/CheckCompanyStatus'),
+  checkAdmin: () => import('App/Middleware/CheckAdmin'),
+  checkCompanyOwner: () => import('App/Middleware/CheckCompanyOwner'),
+  checkPersonal: () => import('App/Middleware/CheckCompanyPersonal'),
 })

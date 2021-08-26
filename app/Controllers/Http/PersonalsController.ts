@@ -9,7 +9,12 @@ export default class PersonalsController {
         .where('companyId', companyId)
         .andWhere('personalTypeId', '!=', ROLE_ID.PROPIETARIO)
         .preload('user')
-        .preload('personalType')
+        .preload('personalType', (personalTypeQuery) => {
+          personalTypeQuery.select('id', 'name')
+        })
+        .preload('branch', (branchQuery) => {
+          branchQuery.select('id', 'name')
+        })
       response.ok({ data: personals })
     } catch (e) {
       console.log('PersonalsController.index: ', e)

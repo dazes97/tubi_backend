@@ -11,6 +11,7 @@ export default class PersonalSeeder extends BaseSeeder {
         dni: '11350212',
         companyId: 1,
         personalTypeId: 1,
+        branchId: 1,
       },
       {
         address: 'Av. Cumavi',
@@ -18,6 +19,7 @@ export default class PersonalSeeder extends BaseSeeder {
         dni: '1212122',
         companyId: 2,
         personalTypeId: 1,
+        branchId: 1,
       },
       {
         address: 'Av. Cumavi',
@@ -25,6 +27,7 @@ export default class PersonalSeeder extends BaseSeeder {
         dni: '4121212',
         companyId: 2,
         personalTypeId: 2,
+        branchId: 1,
       },
     ])
   }

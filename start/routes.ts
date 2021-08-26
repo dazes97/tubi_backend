@@ -23,13 +23,22 @@ Route.get('/', async () => {
 })
 
 Route.group(() => {
-  Route.resource('personalType', 'PersonalTypesController').apiOnly()
   Route.resource('personal', 'PersonalsController').apiOnly()
-  Route.resource('companyOwner', 'CompanyOwnersController').apiOnly()
-  Route.resource('company', 'CompaniesController').apiOnly()
-  Route.resource('users', 'UsersController').apiOnly()
   Route.resource('service', 'ServicesController').apiOnly()
   Route.resource('package', 'PackagesController').apiOnly()
-}).middleware(['auth', 'companyStatusCheck'])
+  Route.resource('branch', 'BranchesController').apiOnly()
+}).middleware(['auth', 'checkCompanyStatus', 'checkCompanyOwner'])
+Route.group(() => {
+  Route.resource('companyOwner', 'CompanyOwnersController').apiOnly()
+  Route.resource('company', 'CompaniesController').apiOnly()
+}).middleware(['auth', 'checkAdmin'])
+Route.resource('personalType', 'PersonalTypesController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkCompanyStatus'],
+    store: ['auth', 'checkAdmin'],
+    update: ['auth', 'checkAdmin'],
+    destroy: ['auth', 'checkAdmin'],
+  })
 Route.post('login', 'AuthController.auth')
 Route.post('logout', 'AuthController.logout')

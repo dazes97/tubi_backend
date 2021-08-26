@@ -10,7 +10,6 @@ import {
 } from '@ioc:Adonis/Lucid/Orm'
 import PersonalType from './PersonalType'
 import Personal from './Personal'
-import Package from './Package'
 import Service from './Service'
 
 export default class Company extends BaseModel {
@@ -43,9 +42,6 @@ export default class Company extends BaseModel {
 
   @hasMany(() => Personal)
   public personals: HasMany<typeof Personal>
-
-  @hasMany(() => Package)
-  public packages: HasMany<typeof Package>
 
   @hasMany(() => Service)
   public services: HasMany<typeof Service>
