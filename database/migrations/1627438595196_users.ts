@@ -11,6 +11,9 @@ export default class Users extends BaseSchema {
       table.string('name').notNullable()
       table.string('last_name').notNullable()
       table.string('gender', 2).notNullable().defaultTo('-1')
+      table.string('country')
+      table.string('city')
+      table.string('postal_code')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

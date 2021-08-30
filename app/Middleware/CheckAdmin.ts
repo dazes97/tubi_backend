@@ -7,7 +7,9 @@ export default class CheckAdmin {
     if (!auth.user?.id) return response.unauthorized({ error: 'Not Authorized' })
     const personal = await Personal.findOrFail(auth.user.id)
     const company = await Company.findOrFail(personal.companyId)
-    if (company.nit === SUPER_ADMIN.NIT && company.name === SUPER_ADMIN.COMPANY_NAME) await next()
-    return response.unauthorized({ error: 'Not Authorized' })
+    console.log('company: ', company)
+    if (company.nit !== SUPER_ADMIN.NIT && company.name !== SUPER_ADMIN.COMPANY_NAME)
+      return response.unauthorized({ error: 'Not Authorized' })
+    await next()
   }
 }

@@ -37,6 +37,9 @@ export default class Service extends BaseModel {
   @column()
   public type: number
 
+  @column()
+  public location: number
+
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
@@ -92,6 +95,7 @@ export default class Service extends BaseModel {
         packageForCreation.status = body.status
         packageForCreation.companyId = companyId
         packageForCreation.type = SERVICE_TYPE.PACKAGE
+        packageForCreation.location = body.location
         packageForCreation.useTransaction(trx)
         const newPackage = await packageForCreation.save()
         for (let i = 0; i < body.services.length; i++) {
@@ -125,6 +129,7 @@ export default class Service extends BaseModel {
           price: body.price,
           status: body.status,
           description: body.description,
+          location: body.location,
         })
         const packageUpdated = await packageToUpdate.save()
         for (let i = 0; i < body.toAdd.length; i++) {
