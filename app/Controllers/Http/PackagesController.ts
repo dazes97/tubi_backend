@@ -1,19 +1,23 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Personal from 'App/Models/Personal'
 import Service from 'App/Models/Service'
+import SERVICE_TYPE from 'App/utils/serviceType'
 
 export default class PackagesController {
   public async index({ auth, response }: HttpContextContract) {
     try {
-      const companyId = await Personal.getCompanyId(auth.user?.id)
-      const packages = await Service.query()
-        .where('type', 2)
-        .andWhere('companyId', companyId)
-        .preload('services')
-        .orderBy('createdAt', 'desc')
+      const packages = await Service.listServicesByCompany(auth.user?.id, SERVICE_TYPE.PACKAGE)
       response.ok({ data: packages })
     } catch (e) {
       console.log('PackagesController,index: ', e)
+      response.internalServerError()
+    }
+  }
+  public async listPackagesInBranch({ auth, response }: HttpContextContract) {
+    try {
+      const services = await Service.listServicesInBranch(auth.user?.id, SERVICE_TYPE.PACKAGE)
+      response.ok({ data: services })
+    } catch (e) {
+      console.log('PackagesController.listPackagesInBranch: ', e)
       response.internalServerError()
     }
   }

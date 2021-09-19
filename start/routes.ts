@@ -18,20 +18,28 @@
 |
 */
 import Route from '@ioc:Adonis/Core/Route'
+import './routes/services'
+import './routes/packages'
+
 Route.get('/', async () => {
   return { hello: 'world' }
 })
-
-Route.group(() => {
-  Route.resource('personal', 'PersonalsController').apiOnly()
-  Route.resource('service', 'ServicesController').apiOnly()
-  Route.resource('package', 'PackagesController').apiOnly()
-  Route.resource('branch', 'BranchesController').apiOnly()
-}).middleware(['auth', 'checkCompanyStatus', 'checkCompanyOwner'])
-Route.group(() => {
-  Route.resource('companyOwner', 'CompanyOwnersController').apiOnly()
-  Route.resource('company', 'CompaniesController').apiOnly()
-}).middleware(['auth', 'checkAdmin'])
+Route.resource('companyOwner', 'CompanyOwnersController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkAdmin'],
+    store: ['auth', 'checkAdmin'],
+    update: ['auth', 'checkAdmin'],
+    destroy: ['auth', 'checkAdmin'],
+  })
+Route.resource('company', 'CompaniesController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkAdmin'],
+    store: ['auth', 'checkAdmin'],
+    update: ['auth', 'checkAdmin'],
+    destroy: ['auth', 'checkAdmin'],
+  })
 Route.resource('personalType', 'PersonalTypesController')
   .apiOnly()
   .middleware({
@@ -40,5 +48,45 @@ Route.resource('personalType', 'PersonalTypesController')
     update: ['auth', 'checkAdmin'],
     destroy: ['auth', 'checkAdmin'],
   })
+Route.resource('request', 'RequestsController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+    store: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+    update: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+    destroy: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+  })
+Route.resource('branch', 'BranchesController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+    store: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+    update: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+    destroy: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+  })
+Route.resource('personal', 'PersonalsController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+    store: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+    update: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+    destroy: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+  })
+// Route.resource('service', 'ServicesController')
+//   .apiOnly()
+//   .middleware({
+//     index: ['auth', 'checkCompanyStatus'],
+//     store: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+//     update: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+//     destroy: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+//   })
+// Route.resource('package', 'PackagesController')
+//   .apiOnly()
+//   .middleware({
+//     index: ['auth', 'checkCompanyStatus'],
+//     store: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+//     update: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+//     destroy: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
+//   })
 Route.post('login', 'AuthController.auth')
 Route.post('logout', 'AuthController.logout')

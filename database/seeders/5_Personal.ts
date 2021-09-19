@@ -27,7 +27,7 @@ export default class PersonalSeeder extends BaseSeeder {
         dni: '4121212',
         companyId: 2,
         personalTypeId: 2,
-        branchId: 1,
+        branchId: 2,
       },
     ])
   }

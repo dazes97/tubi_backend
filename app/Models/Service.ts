@@ -59,6 +59,11 @@ export default class Service extends BaseModel {
     query.whereNull('deleted_at')
   }
 
+  public async delete(): Promise<void> {
+    this.deletedAt = DateTime.local()
+    await this.save()
+  }
+
   @belongsTo(() => Company)
   public company: BelongsTo<typeof Company>
 
@@ -71,11 +76,51 @@ export default class Service extends BaseModel {
   })
   public services: ManyToMany<typeof Service>
 
-  public async delete(): Promise<void> {
-    this.deletedAt = DateTime.local()
-    await this.save()
+  public static async listServicesByCompany(authId: any, serviceType: any) {
+    const companyId = await Personal.getCompanyId(authId)
+    if (serviceType === SERVICE_TYPE.SERVICE) {
+      return await Service.query()
+        .where('companyId', companyId)
+        .andWhere('type', serviceType)
+        .orderBy('createdAt', 'desc')
+    } else {
+      return await Service.query()
+        .where('companyId', companyId)
+        .andWhere('type', serviceType)
+        .orderBy('createdAt', 'desc')
+        .preload('services')
+    }
   }
 
+  public static async listServicesInBranch(authId: any, serviceType: any) {
+    const personal = await Personal.findOrFail(authId)
+    if (serviceType === SERVICE_TYPE.SERVICE) {
+      return await Database.query()
+        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type')
+        .from('services as s')
+        .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
+        .where('s.company_id', personal.companyId)
+        .andWhere('s.status', '1')
+        .andWhere('s.type', serviceType)
+        .andWhere('bs.branch_id', personal.branchId)
+        .whereNull('s.deleted_at')
+        .distinctOn('s.id')
+        .orderBy(['s.id', 's.created_at'])
+    } else {
+      return await Service.query()
+        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type')
+        .from('services as s')
+        .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
+        .where('s.company_id', personal.companyId)
+        .andWhere('s.status', '1')
+        .andWhere('s.type', serviceType)
+        .andWhere('bs.branch_id', personal.branchId)
+        .whereNull('s.deleted_at')
+        .distinctOn('s.id')
+        .orderBy(['s.id', 's.created_at'])
+        .preload('services')
+    }
+  }
   public static async findServiceByCompany(id: any, companyId) {
     return await Service.query()
       .where('companyId', companyId)
