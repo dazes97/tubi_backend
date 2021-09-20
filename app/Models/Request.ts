@@ -238,6 +238,7 @@ export default class Request extends BaseModel {
           company_id: personal.companyId,
           personal_id: personal.id,
           request_id: requestToUpdate.id,
+          created_at: DateTime.now(),
         })
         await trx.commit()
         return requestToUpdate

@@ -15,7 +15,6 @@ export default class RequestStatus extends BaseSchema {
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
       table.timestamp('created_at', { useTz: false })
-      table.timestamp('updated_at', { useTz: false })
       table.timestamp('deleted_at', { useTz: false })
     })
   }
