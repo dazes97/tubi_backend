@@ -24,8 +24,9 @@ export default class Requests extends BaseSchema {
       table.string('client_address')
       table.string('client_address_detail')
       table.integer('client_id').unsigned().references('clients.id')
-      table.integer('company_id').unsigned().references('companies.id')
-      table.integer('personal_id').unsigned().references('personals.id').notNullable()
+      table.integer('personal_id').unsigned().references('personals.id')
+      table.integer('company_id').unsigned().references('companies.id').notNullable()
+      table.integer('branch_id').unsigned().references('branches.id').notNullable()
 
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL

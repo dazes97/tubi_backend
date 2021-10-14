@@ -28,8 +28,8 @@ export default class Service extends BaseModel {
   @column()
   public description: string
 
-  @column()
-  public status: string
+  // @column()
+  // public status: string
 
   @column({ serializeAs: 'companyId' })
   public companyId: number
@@ -68,11 +68,12 @@ export default class Service extends BaseModel {
   public company: BelongsTo<typeof Company>
 
   @manyToMany(() => Service, {
-    localKey: 'id',
+    //localKey: 'id',
     pivotForeignKey: 'package_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'service_id',
     pivotTable: 'package_service',
+    pivotTimestamps: true,
   })
   public services: ManyToMany<typeof Service>
 
@@ -96,11 +97,11 @@ export default class Service extends BaseModel {
     const personal = await Personal.findOrFail(authId)
     if (serviceType === SERVICE_TYPE.SERVICE) {
       return await Database.query()
-        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type')
+        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type', 'bs.status')
         .from('services as s')
         .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
         .where('s.company_id', personal.companyId)
-        .andWhere('s.status', '1')
+        // .andWhere('s.status', '1')
         .andWhere('s.type', serviceType)
         .andWhere('bs.branch_id', personal.branchId)
         .whereNull('s.deleted_at')
@@ -108,11 +109,11 @@ export default class Service extends BaseModel {
         .orderBy(['s.id', 's.created_at'])
     } else {
       return await Service.query()
-        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type')
+        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type', 'bs.status')
         .from('services as s')
         .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
         .where('s.company_id', personal.companyId)
-        .andWhere('s.status', '1')
+        // .andWhere('s.status', '1')
         .andWhere('s.type', serviceType)
         .andWhere('bs.branch_id', personal.branchId)
         .whereNull('s.deleted_at')
@@ -137,7 +138,7 @@ export default class Service extends BaseModel {
         packageForCreation.name = body.name
         packageForCreation.price = body.price
         packageForCreation.description = body.description
-        packageForCreation.status = body.status
+        // packageForCreation.status = body.status
         packageForCreation.companyId = companyId
         packageForCreation.type = SERVICE_TYPE.PACKAGE
         packageForCreation.location = body.location
@@ -172,7 +173,7 @@ export default class Service extends BaseModel {
         packageToUpdate.merge({
           name: body.name,
           price: body.price,
-          status: body.status,
+          // status: body.status,
           description: body.description,
           location: body.location,
         })

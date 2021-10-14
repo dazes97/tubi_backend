@@ -73,6 +73,9 @@ export default class Request extends BaseModel {
   @column()
   public companyId: number
 
+  @column()
+  public branchId: number
+
   @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
@@ -132,25 +135,22 @@ export default class Request extends BaseModel {
                 SELECT 
                 s.id, s.name, s.price, s.description, s.type
                 FROM services as s 
-                INNER JOIN branch_service as bsa on bsa.service_id = s.id
-                INNER JOIN request_branch_service as rbsa on rbsa.branch_service_id = bsa.id
-                WHERE rbsa.request_id = r.id
+                INNER JOIN request_service as rs on rs.service_id = s.id
+                WHERE rs.request_id = r.id
                 ) service
               ) as services,
             ARRAY(
               SELECT json_agg(statuses) FROM 
               (
                 SELECT 
-                rs.id, rs.status, rs.observation, rs.created_at as "createdAt"
+                rs.request_id as "requestId", rs.status_request_id as "status", rs.observation, rs.created_at as "createdAt"
                 FROM request_status as rs 
                 WHERE rs.request_id = r.id
                 ORDER BY r.created_at DESC
                 ) statuses
               ) as statuses
           FROM requests as r
-            INNER JOIN request_branch_service as rbs on rbs.request_id = r.id
-            INNER JOIN branch_service as bs on bs.id = rbs.branch_service_id
-            INNER JOIN branches as b on b.id = bs.branch_id
+            INNER JOIN branches as b on b.id = r.branch_id
             INNER JOIN personals as p on p.id = r.personal_id
             INNER JOIN users as u on u.id = p.id
           WHERE b.id = ?
@@ -170,7 +170,10 @@ export default class Request extends BaseModel {
         const companyId = await Personal.getCompanyId(authId)
         let requestTotal: number = 0
         for (let i = 0; i < request.services.length; i++) {
-          const service = await Service.findOrFail(request.services[i].id)
+          const service = await await Service.query()
+            .where('company_id', companyId)
+            .andWhere('id', request.services[i].id)
+            .firstOrFail()
           requestTotal = requestTotal + Number(service.price)
         }
         const requestToCreate = new Request()
@@ -197,20 +200,18 @@ export default class Request extends BaseModel {
         const requestCreated = await requestToCreate.save()
         //insert services with branch services table with the respective status
         for (let i = 0; i < request.services.length; i++) {
-          const serviceBranch = await Database.query()
-            .select('id')
-            .from('branch_service')
-            .where('branch_id', personal.branchId)
-            .andWhere('service_id', request.services[i].id)
+          const serviceToInsert = await Service.query()
+            .where('company_id', companyId)
+            .andWhere('id', request.services[i].id)
             .firstOrFail()
-          await trx.insertQuery().table('request_branch_service').insert({
+          await trx.insertQuery().table('request_service').insert({
             request_id: requestCreated.id,
-            branch_service_id: serviceBranch.id,
+            service_id: serviceToInsert.id,
           })
         }
         //Insert first status
         await trx.insertQuery().table('request_status').insert({
-          status: 0,
+          status_request_id: 0,
           request_id: requestCreated.id,
           personal_id: personal.id,
           company_id: companyId,
@@ -233,7 +234,7 @@ export default class Request extends BaseModel {
         requestToUpdate.useTransaction(trx)
         await requestToUpdate.save()
         await trx.insertQuery().table('request_status').insert({
-          status: request.newStatus.status,
+          status_request_id: request.newStatus.status,
           observation: request.newStatus.observation,
           company_id: personal.companyId,
           personal_id: personal.id,

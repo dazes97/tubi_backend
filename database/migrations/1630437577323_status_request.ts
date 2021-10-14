@@ -1,18 +1,12 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
 
-export default class Services extends BaseSchema {
-  protected tableName = 'services'
+export default class RequestBranchServices extends BaseSchema {
+  protected tableName = 'status_request'
 
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
       table.string('name').notNullable()
-      table.decimal('price').notNullable()
-      table.text('description').defaultTo('')
-      //table.string('status', 1).defaultTo('1').notNullable()
-      table.string('type', 1).notNullable()
-      table.string('location', 1).notNullable().defaultTo(0)
-      table.integer('company_id').unsigned().references('companies.id').notNullable()
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

@@ -59,7 +59,7 @@ export default class Branch extends BaseModel {
   public personals: HasMany<typeof Personal>
 
   @manyToMany(() => Service, {
-    localKey: 'id',
+    //localKey: 'id',
     pivotForeignKey: 'branch_id',
     relatedKey: 'id',
     pivotRelatedForeignKey: 'service_id',
@@ -80,6 +80,78 @@ export default class Branch extends BaseModel {
   public async delete() {
     this.deletedAt = DateTime.local()
     await this.save()
+  }
+  public static async getBranchPerCompany(authId: any) {
+    const companyId = await Personal.getCompanyId(authId)
+    const requests = await Database.rawQuery(
+      ` SELECT
+            DISTINCT ON (b.id) b.id,
+            b.name,
+            b.address,
+            b.description,
+            b.attention_capacity as "attentionCapacity",
+            b.type,
+            b.status,
+            b.lat,
+            b.lng,
+            b.company_id as "companyId",
+            ARRAY(
+              SELECT json_agg(service) FROM 
+              (
+                SELECT
+                DISTINCT ON (s.id) 
+                s.id,
+                s.name,
+                s.price,
+                s.description,
+                s.type,
+                s.location,
+                bs.status,
+                ARRAY(
+                  SELECT json_agg(services) FROM 
+                  (
+                    SELECT 
+                    s1.id,
+                    s1.name,
+                    s1.price,
+                    s1.description,
+                    s1.type,
+                    s1.location
+                    FROM services as s1
+                    INNER JOIN package_service as ps on ps.service_id = s1.id  
+                    WHERE ps.package_id = s.id
+                  ) services
+                ) as services
+                FROM services as s
+                INNER JOIN branch_service as bs on bs.service_id = s.id 
+                WHERE bs.branch_id = b.id
+                ORDER BY s.id  ASC
+
+              ) service
+            ) as services,
+            ARRAY(
+              SELECT json_agg(personals) FROM 
+              (
+                SELECT
+                p.id,
+                p.dni,
+                u.name,
+                u.last_name as "lastName",
+                u.email
+                FROM personals as p
+                INNER JOIN users as u on u.id = p.id 
+                WHERE p.branch_id = b.id
+                ORDER BY p.created_at DESC
+                ) personals
+              ) as personals
+          FROM branches as b
+          WHERE b.company_id = ?
+          AND b.deleted_at IS NULL
+          ORDER BY b.id  DESC
+            `,
+      [companyId]
+    )
+    return requests.rows
   }
 
   public static async updateBranch(body: any, authId: any, branchId) {
@@ -110,6 +182,21 @@ export default class Branch extends BaseModel {
               .andWhere('service_id', body.services.toDelete[i])
               .delete()
           }
+          for (let i = 0; i < body.services.toChangeStatus.length; i++) {
+            const branchService = await trx
+              .query()
+              .from('branch_service')
+              .where('branch_id', branchToUpdate.id)
+              .andWhere('service_id', body.services.toChangeStatus[i])
+              .firstOrFail()
+            const statusToUpdate = branchService.status === '1' ? '0' : '1'
+            await trx
+              .query()
+              .from('branch_service')
+              .where('branch_id', branchToUpdate.id)
+              .andWhere('service_id', body.services.toChangeStatus[i])
+              .update({ status: statusToUpdate })
+          }
         }
         if (body.packages) {
           for (let i = 0; i < body.packages.toAdd.length; i++) {
@@ -125,6 +212,21 @@ export default class Branch extends BaseModel {
               .where('branch_id', branchToUpdate.id)
               .andWhere('service_id', body.packages.toDelete[i])
               .delete()
+          }
+          for (let i = 0; i < body.packages.toChangeStatus.length; i++) {
+            const branchService = await trx
+              .query()
+              .from('branch_service')
+              .where('branch_id', branchToUpdate.id)
+              .andWhere('service_id', body.packages.toChangeStatus[i])
+              .firstOrFail()
+            const statusToUpdate = branchService.status === '1' ? '0' : '1'
+            await trx
+              .query()
+              .from('branch_service')
+              .where('branch_id', branchToUpdate.id)
+              .andWhere('service_id', body.packages.toChangeStatus[i])
+              .update({ status: statusToUpdate })
           }
         }
         await trx.commit()

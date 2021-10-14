@@ -19,6 +19,7 @@ export default class RequestSeeder extends BaseSeeder {
         clientPhone: '78066791',
         personalId: 3,
         companyId: 2,
+        branchId: 2,
         requestDeliveryDateTime: DateTime.now(),
       },
       {
@@ -34,6 +35,7 @@ export default class RequestSeeder extends BaseSeeder {
         clientPhone: '7878798798',
         personalId: 3,
         companyId: 2,
+        branchId: 2,
         requestDeliveryDateTime: DateTime.now(),
       },
     ])
