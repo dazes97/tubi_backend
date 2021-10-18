@@ -135,7 +135,7 @@ export default class Request extends BaseModel {
                 SELECT 
                 s.id, s.name, s.price, s.description, s.type
                 FROM services as s 
-                INNER JOIN request_service as rs on rs.service_id = s.id
+                INNER JOIN request_detail as rs on rs.service_id = s.id
                 WHERE rs.request_id = r.id
                 ) service
               ) as services,
@@ -193,6 +193,7 @@ export default class Request extends BaseModel {
         requestToCreate.requestCode = this.trackingNumber()
         requestToCreate.personalId = personal.id
         requestToCreate.companyId = companyId
+        requestToCreate.branchId = personal.branchId
         if (request.bikePhoto) {
           requestToCreate.bikePhoto = request.bikePhoto
         }
@@ -204,9 +205,11 @@ export default class Request extends BaseModel {
             .where('company_id', companyId)
             .andWhere('id', request.services[i].id)
             .firstOrFail()
-          await trx.insertQuery().table('request_service').insert({
+          await trx.insertQuery().table('request_detail').insert({
             request_id: requestCreated.id,
             service_id: serviceToInsert.id,
+            created_at:  DateTime.now().toISO(),
+            updated_at:  DateTime.now().toISO(),
           })
         }
         //Insert first status
@@ -215,6 +218,8 @@ export default class Request extends BaseModel {
           request_id: requestCreated.id,
           personal_id: personal.id,
           company_id: companyId,
+          created_at:  DateTime.now().toISO(),
+          updated_at:  DateTime.now().toISO(),
         })
         await trx.commit()
         return requestCreated
@@ -239,7 +244,8 @@ export default class Request extends BaseModel {
           company_id: personal.companyId,
           personal_id: personal.id,
           request_id: requestToUpdate.id,
-          created_at: DateTime.now(),
+          created_at:  DateTime.now().toISO(),
+          updated_at:  DateTime.now().toISO(),
         })
         await trx.commit()
         return requestToUpdate

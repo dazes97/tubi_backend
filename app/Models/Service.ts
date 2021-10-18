@@ -85,11 +85,39 @@ export default class Service extends BaseModel {
         .andWhere('type', serviceType)
         .orderBy('createdAt', 'desc')
     } else {
-      return await Service.query()
-        .where('companyId', companyId)
-        .andWhere('type', serviceType)
-        .orderBy('createdAt', 'desc')
-        .preload('services')
+      const packages = await Database.rawQuery(
+        `
+      SELECT
+      DISTINCT ON (s.id) s.id,
+      s.name,
+      s.price,
+      s.description,
+      s.location,
+      s.type,
+      ARRAY(
+        SELECT json_agg(service) FROM 
+        (
+          SELECT 
+          s1.id, s1.name, s1.price, s1.description, s1.type
+          FROM services as s1 
+          INNER JOIN package_service as ps on ps.service_id = s1.id
+          WHERE ps.package_id = s.id AND ps.deleted_at IS NULL AND s1.type=?
+          ) service
+        ) as services
+      FROM services as s
+      WHERE s.company_id = ? 
+      AND s.type = ? 
+      AND s.deleted_at IS NULL
+      ORDER BY s.id, s.created_at
+      `,
+        [SERVICE_TYPE.SERVICE, companyId, SERVICE_TYPE.PACKAGE]
+      )
+      return packages.rows
+      // return await Service.query()
+      //   .where('companyId', companyId)
+      //   .andWhere('type', serviceType)
+      //   .orderBy('createdAt', 'desc')
+      //   .preload('services')
     }
   }
 
@@ -108,18 +136,50 @@ export default class Service extends BaseModel {
         .distinctOn('s.id')
         .orderBy(['s.id', 's.created_at'])
     } else {
-      return await Service.query()
-        .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type', 'bs.status')
-        .from('services as s')
-        .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
-        .where('s.company_id', personal.companyId)
-        // .andWhere('s.status', '1')
-        .andWhere('s.type', serviceType)
-        .andWhere('bs.branch_id', personal.branchId)
-        .whereNull('s.deleted_at')
-        .distinctOn('s.id')
-        .orderBy(['s.id', 's.created_at'])
-        .preload('services')
+      const packages = await Database.rawQuery(
+        `
+      SELECT
+      DISTINCT ON (s.id) s.id,
+      s.name,
+      s.price,
+      s.description,
+      s.location,
+      s.type,
+      bs.status,
+      ARRAY(
+        SELECT json_agg(service) FROM 
+        (
+          SELECT 
+          s1.id, s.name, s1.price, s1.description, s1.type
+          FROM services as s1 
+          INNER JOIN package_service as ps on ps.service_id = s1.id
+          WHERE ps.package_id = s.id AND ps.deleted_at IS NULL
+          ) service
+        ) as services
+      FROM services as s
+      INNER JOIN branch_service as bs on bs.service_id = s.id
+      WHERE s.company_id = ? 
+      AND s.type = ? 
+      AND bs.branch_id = ?
+      AND bs.deleted_at is NULL 
+      AND s.deleted_at IS NULL
+      ORDER BY s.id, s.created_at
+      `,
+        [personal.companyId, SERVICE_TYPE.PACKAGE, personal.branchId]
+      )
+      return packages.rows
+      // return await Service.query()
+      //   .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type', 'bs.status')
+      //   .from('services as s')
+      //   .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
+      //   .where('s.company_id', personal.companyId)
+      //   // .andWhere('s.status', '1')
+      //   .andWhere('s.type', serviceType)
+      //   .andWhere('bs.branch_id', personal.branchId)
+      //   .whereNull('s.deleted_at')
+      //   .distinctOn('s.id')
+      //   .orderBy(['s.id', 's.created_at'])
+      //   .preload('services')
     }
   }
   public static async findServiceByCompany(id: any, companyId) {
@@ -148,6 +208,8 @@ export default class Service extends BaseModel {
           await trx.insertQuery().table('package_service').insert({
             package_id: newPackage.id,
             service_id: body.services[i],
+            created_at: DateTime.now().toISO(),
+            updated_at: DateTime.now().toISO(),
           })
         }
         await trx.commit()
@@ -182,6 +244,8 @@ export default class Service extends BaseModel {
           await trx.insertQuery().table('package_service').insert({
             package_id: packageToUpdate.id,
             service_id: body.toAdd[i],
+            created_at: DateTime.now().toISO(),
+            updated_at: DateTime.now().toISO(),
           })
         }
         for (let i = 0; i < body.toDelete.length; i++) {
@@ -190,7 +254,7 @@ export default class Service extends BaseModel {
             .from('package_service')
             .where('package_id', packageToUpdate.id)
             .andWhere('service_id', body.toDelete[i])
-            .delete()
+            .update({ deleted_at: DateTime.now().toISO() })
         }
         await trx.commit()
         return packageUpdated
@@ -223,7 +287,7 @@ export default class Service extends BaseModel {
             .from('package_service')
             .where('package_id', packageId)
             .andWhere('service_id', serviceFromThisPackage[i].serviceId)
-            .delete()
+            .update({ deleted_at: DateTime.now().toISO() })
         }
         const packageDeleted = await packageToDelete.delete()
         await trx.commit()

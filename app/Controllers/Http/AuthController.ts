@@ -3,6 +3,7 @@ import Company from 'App/Models/Company'
 import { SUPER_ADMIN } from '../../utils/roleConstant'
 import Personal from 'App/Models/Personal'
 import User from 'App/Models/User'
+import Branch from 'App/Models/Branch'
 
 export default class AuthController {
   public async auth({ request, response, auth }: HttpContextContract) {
@@ -17,6 +18,12 @@ export default class AuthController {
       const user = await User.findByOrFail('email', email)
       const personal = await Personal.findOrFail(user.id)
       const company = await Company.findOrFail(personal.companyId)
+      //if the user who is login is not propietario
+      if (personal.personalTypeId !== 1) {
+        //verify that branch is not deleted
+        const branchWherePersonalWorks = await Branch.find(personal.branchId)
+        if (!branchWherePersonalWorks) return response.unauthorized({ error: 'Not Authorized' })
+      }
       if (company.status !== '1') return response.unauthorized({ error: 'Not Authorized' })
       const cookieData = {
         id: user.id,

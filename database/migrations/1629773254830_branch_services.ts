@@ -7,13 +7,17 @@ export default class BranchServices extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       //table.increments('id').primary()
       table.integer('branch_id').unsigned().references('id').inTable('branches').index()
+      table.increments('id').primary().notNullable()
       table.integer('service_id').unsigned().references('id').inTable('services').index()
       table.string('status', 2).defaultTo('1').notNullable()
+      table.unique(['branch_id', 'id'])
+
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
       table.timestamp('created_at', { useTz: false })
       table.timestamp('updated_at', { useTz: false })
+      table.timestamp('deleted_at', { useTz: false })
     })
   }
 

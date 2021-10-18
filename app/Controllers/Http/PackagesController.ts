@@ -14,8 +14,8 @@ export default class PackagesController {
   }
   public async listPackagesInBranch({ auth, response }: HttpContextContract) {
     try {
-      const services = await Service.listServicesInBranch(auth.user?.id, SERVICE_TYPE.PACKAGE)
-      response.ok({ data: services })
+      const packages = await Service.listServicesInBranch(auth.user?.id, SERVICE_TYPE.PACKAGE)
+      response.ok({ data: packages })
     } catch (e) {
       console.log('PackagesController.listPackagesInBranch: ', e)
       response.internalServerError()

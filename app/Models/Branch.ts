@@ -119,11 +119,11 @@ export default class Branch extends BaseModel {
                     s1.location
                     FROM services as s1
                     INNER JOIN package_service as ps on ps.service_id = s1.id  
-                    WHERE ps.package_id = s.id
+                    WHERE ps.package_id = s.id AND ps.deleted_at IS NULL
                   ) services
                 ) as services
                 FROM services as s
-                INNER JOIN branch_service as bs on bs.service_id = s.id 
+                INNER JOIN branch_service as bs on bs.service_id = s.id AND bs.deleted_at IS NULL 
                 WHERE bs.branch_id = b.id
                 ORDER BY s.id  ASC
 
@@ -172,6 +172,8 @@ export default class Branch extends BaseModel {
             await trx.insertQuery().table('branch_service').insert({
               branch_id: branchToUpdate.id,
               service_id: body.services.toAdd[i],
+              created_at: DateTime.now().toISO(),
+              updated_at: DateTime.now().toISO(),
             })
           }
           for (let i = 0; i < body.services.toDelete.length; i++) {
@@ -180,7 +182,7 @@ export default class Branch extends BaseModel {
               .from('branch_service')
               .where('branch_id', branchToUpdate.id)
               .andWhere('service_id', body.services.toDelete[i])
-              .delete()
+              .update({ deleted_at: DateTime.now().toISO() })
           }
           for (let i = 0; i < body.services.toChangeStatus.length; i++) {
             const branchService = await trx
@@ -195,7 +197,7 @@ export default class Branch extends BaseModel {
               .from('branch_service')
               .where('branch_id', branchToUpdate.id)
               .andWhere('service_id', body.services.toChangeStatus[i])
-              .update({ status: statusToUpdate })
+              .update({ status: statusToUpdate, updated_at: DateTime.now().toISO() })
           }
         }
         if (body.packages) {
@@ -203,6 +205,8 @@ export default class Branch extends BaseModel {
             await trx.insertQuery().table('branch_service').insert({
               branch_id: branchToUpdate.id,
               service_id: body.packages.toAdd[i],
+              created_at: DateTime.now().toISO(),
+              updated_at: DateTime.now().toISO(),
             })
           }
           for (let i = 0; i < body.packages.toDelete.length; i++) {
@@ -211,7 +215,7 @@ export default class Branch extends BaseModel {
               .from('branch_service')
               .where('branch_id', branchToUpdate.id)
               .andWhere('service_id', body.packages.toDelete[i])
-              .delete()
+              .update({ deleted_at: DateTime.now().toISO() })
           }
           for (let i = 0; i < body.packages.toChangeStatus.length; i++) {
             const branchService = await trx
@@ -226,7 +230,7 @@ export default class Branch extends BaseModel {
               .from('branch_service')
               .where('branch_id', branchToUpdate.id)
               .andWhere('service_id', body.packages.toChangeStatus[i])
-              .update({ status: statusToUpdate })
+              .update({ status: statusToUpdate, updated_at: DateTime.now().toISO() })
           }
         }
         await trx.commit()
@@ -252,6 +256,7 @@ export default class Branch extends BaseModel {
           .query()
           .from('branch_service')
           .where('branch_id', branchId)
+          .whereNull('deleted_at')
           .select('service_id as serviceId')
         for (let i = 0; i < serviceAndPackagesFromThisBranch.length; i++) {
           await trx
@@ -259,7 +264,7 @@ export default class Branch extends BaseModel {
             .from('branch_service')
             .where('branch_id', branchId)
             .andWhere('service_id', serviceAndPackagesFromThisBranch[i].serviceId)
-            .delete()
+            .update({ deleted_at: DateTime.now().toISO() })
         }
         const branchDeleted = await branchToDelete.delete()
         await trx.commit()

@@ -6,7 +6,7 @@ export default class RequestStatus extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.integer('request_id').unsigned().references('requests.id').notNullable()
-      table.increments('id').primary()
+      table.increments('id').primary().notNullable()
       table.integer('status_request_id').unsigned().references('id').inTable('status_request')
       table.integer('personal_id').unsigned().references('personals.id').notNullable()
       table.integer('company_id').unsigned().references('companies.id').notNullable()
