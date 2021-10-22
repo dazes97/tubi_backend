@@ -208,8 +208,8 @@ export default class Service extends BaseModel {
           await trx.insertQuery().table('package_service').insert({
             package_id: newPackage.id,
             service_id: body.services[i],
-            created_at: DateTime.now().toISO(),
-            updated_at: DateTime.now().toISO(),
+            created_at: DateTime.local().toUTC().toISO(),
+            updated_at: DateTime.local().toUTC().toISO(),
           })
         }
         await trx.commit()
@@ -244,8 +244,8 @@ export default class Service extends BaseModel {
           await trx.insertQuery().table('package_service').insert({
             package_id: packageToUpdate.id,
             service_id: body.toAdd[i],
-            created_at: DateTime.now().toISO(),
-            updated_at: DateTime.now().toISO(),
+            created_at: DateTime.local().toUTC().toISO(),
+            updated_at: DateTime.local().toUTC().toISO(),
           })
         }
         for (let i = 0; i < body.toDelete.length; i++) {
@@ -254,7 +254,7 @@ export default class Service extends BaseModel {
             .from('package_service')
             .where('package_id', packageToUpdate.id)
             .andWhere('service_id', body.toDelete[i])
-            .update({ deleted_at: DateTime.now().toISO() })
+            .update({ deleted_at: DateTime.local().toUTC().toISO() })
         }
         await trx.commit()
         return packageUpdated
@@ -287,7 +287,7 @@ export default class Service extends BaseModel {
             .from('package_service')
             .where('package_id', packageId)
             .andWhere('service_id', serviceFromThisPackage[i].serviceId)
-            .update({ deleted_at: DateTime.now().toISO() })
+            .update({ deleted_at: DateTime.local().toUTC().toISO() })
         }
         const packageDeleted = await packageToDelete.delete()
         await trx.commit()

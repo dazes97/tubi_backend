@@ -6,18 +6,18 @@ export default class RequestStatusSeeder extends BaseSeeder {
   public async run() {
     // Write your database queries inside the run method
     await Database.insertQuery()
-      .table('request_status')
+      .table('quote_status')
       .insert([
         {
-          request_id: 1,
-          status_request_id: 0,
+          quote_id: 1,
+          status_quote_id: 0,
           personal_id: 3,
           company_id: 2,
           created_at: DateTime.local().toUTC().toISO(),
         },
         {
-          request_id: 2,
-          status_request_id: 0,
+          quote_id: 2,
+          status_quote_id: 0,
           personal_id: 3,
           company_id: 2,
           created_at: DateTime.local().toUTC().toISO(),

@@ -99,7 +99,7 @@ export default class Request extends BaseModel {
     this.deletedAt = DateTime.local()
     await this.save()
   }
-  public static trackingNumber(pr = 'T', su = 'S') {
+  public static trackingNumber(pr = 'T', su = 'R') {
     for (let i = 0; i < 5; i++) pr += ~~(Math.random() * 10)
     return pr + su
   }
@@ -127,8 +127,6 @@ export default class Request extends BaseModel {
             r.created_at as "requestCreatedAt",
             r.request_status as "requestStatus",
             r.request_delivery_date_time as "requestDeliveryDateTime",
-            u.name as "personalName",
-            u.last_name as "personalLastName",
             ARRAY(
               SELECT json_agg(service) FROM 
               (
@@ -151,8 +149,6 @@ export default class Request extends BaseModel {
               ) as statuses
           FROM requests as r
             INNER JOIN branches as b on b.id = r.branch_id
-            INNER JOIN personals as p on p.id = r.personal_id
-            INNER JOIN users as u on u.id = p.id
           WHERE b.id = ?
           AND b.company_id = ?
           AND r.company_id = ?
@@ -208,8 +204,8 @@ export default class Request extends BaseModel {
           await trx.insertQuery().table('request_detail').insert({
             request_id: requestCreated.id,
             service_id: serviceToInsert.id,
-            created_at:  DateTime.now().toISO(),
-            updated_at:  DateTime.now().toISO(),
+            created_at: DateTime.local().toUTC().toISO(),
+            updated_at: DateTime.local().toUTC().toISO(),
           })
         }
         //Insert first status
@@ -218,8 +214,8 @@ export default class Request extends BaseModel {
           request_id: requestCreated.id,
           personal_id: personal.id,
           company_id: companyId,
-          created_at:  DateTime.now().toISO(),
-          updated_at:  DateTime.now().toISO(),
+          created_at: DateTime.local().toUTC().toISO(),
+          updated_at: DateTime.local().toUTC().toISO(),
         })
         await trx.commit()
         return requestCreated
@@ -244,8 +240,8 @@ export default class Request extends BaseModel {
           company_id: personal.companyId,
           personal_id: personal.id,
           request_id: requestToUpdate.id,
-          created_at:  DateTime.now().toISO(),
-          updated_at:  DateTime.now().toISO(),
+          created_at: DateTime.local().toUTC().toISO(),
+          updated_at: DateTime.local().toUTC().toISO(),
         })
         await trx.commit()
         return requestToUpdate

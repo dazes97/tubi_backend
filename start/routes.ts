@@ -56,6 +56,14 @@ Route.resource('request', 'RequestsController')
     update: ['auth', 'checkCompanyStatus', 'checkPersonal'],
     destroy: ['auth', 'checkCompanyStatus', 'checkPersonal'],
   })
+Route.resource('quote', 'QuotesController')
+  .apiOnly()
+  .middleware({
+    index: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+    store: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+    update: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+    destroy: ['auth', 'checkCompanyStatus', 'checkPersonal'],
+  })
 Route.resource('branch', 'BranchesController')
   .apiOnly()
   .middleware({

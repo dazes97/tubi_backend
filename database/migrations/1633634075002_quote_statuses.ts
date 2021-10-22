@@ -18,7 +18,6 @@ export default class QuoteStatuses extends BaseSchema {
       table.timestamp('created_at', { useTz: false })
       table.timestamp('updated_at', { useTz: false })
       table.timestamp('deleted_at', { useTz: false })
-
     })
   }
 
