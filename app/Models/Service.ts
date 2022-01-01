@@ -28,9 +28,6 @@ export default class Service extends BaseModel {
   @column()
   public description: string
 
-  // @column()
-  // public status: string
-
   @column({ serializeAs: 'companyId' })
   public companyId: number
 
@@ -77,6 +74,29 @@ export default class Service extends BaseModel {
   })
   public services: ManyToMany<typeof Service>
 
+  public static async getServicesByBranchForBot(branchId: number, companyId: number) {
+    const services = await Database.query()
+      .select('s.id', 's.name', 's.price', 's.type')
+      .from('services as s')
+      .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
+      .where('s.company_id', companyId)
+      .andWhere('bs.branch_id', branchId)
+      .andWhere('bs.status', '1')
+      .whereNull('s.deleted_at')
+      .distinctOn('s.id')
+      .orderBy(['s.id', 's.type'])
+    let textResponse = services.length > 0 ? 'Lista de servicios: \n' : 'Sin sucursales'
+    services.forEach((e) => {
+      textResponse =
+        textResponse +
+        `${e.id}.- ${e.name} Bs.${e.price} ` +
+        (e.type === '1' ? '(Servicio)' : '(Paquete)') +
+        '\n'
+    })
+    console.log('text response: ', textResponse)
+    return textResponse
+  }
+
   public static async listServicesByCompany(authId: any, serviceType: any) {
     const companyId = await Personal.getCompanyId(authId)
     if (serviceType === SERVICE_TYPE.SERVICE) {
@@ -113,11 +133,6 @@ export default class Service extends BaseModel {
         [SERVICE_TYPE.SERVICE, companyId, SERVICE_TYPE.PACKAGE]
       )
       return packages.rows
-      // return await Service.query()
-      //   .where('companyId', companyId)
-      //   .andWhere('type', serviceType)
-      //   .orderBy('createdAt', 'desc')
-      //   .preload('services')
     }
   }
 
@@ -129,7 +144,6 @@ export default class Service extends BaseModel {
         .from('services as s')
         .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
         .where('s.company_id', personal.companyId)
-        // .andWhere('s.status', '1')
         .andWhere('s.type', serviceType)
         .andWhere('bs.branch_id', personal.branchId)
         .whereNull('s.deleted_at')
@@ -168,18 +182,6 @@ export default class Service extends BaseModel {
         [personal.companyId, SERVICE_TYPE.PACKAGE, personal.branchId]
       )
       return packages.rows
-      // return await Service.query()
-      //   .select('s.id', 's.name', 's.price', 's.description', 's.location', 's.type', 'bs.status')
-      //   .from('services as s')
-      //   .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
-      //   .where('s.company_id', personal.companyId)
-      //   // .andWhere('s.status', '1')
-      //   .andWhere('s.type', serviceType)
-      //   .andWhere('bs.branch_id', personal.branchId)
-      //   .whereNull('s.deleted_at')
-      //   .distinctOn('s.id')
-      //   .orderBy(['s.id', 's.created_at'])
-      //   .preload('services')
     }
   }
   public static async findServiceByCompany(id: any, companyId) {
@@ -198,7 +200,6 @@ export default class Service extends BaseModel {
         packageForCreation.name = body.name
         packageForCreation.price = body.price
         packageForCreation.description = body.description
-        // packageForCreation.status = body.status
         packageForCreation.companyId = companyId
         packageForCreation.type = SERVICE_TYPE.PACKAGE
         packageForCreation.location = body.location

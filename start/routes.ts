@@ -20,6 +20,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 import './routes/services'
 import './routes/packages'
+import './routes/bot/bots'
 
 Route.get('/', async () => {
   return { hello: 'world' }
@@ -80,6 +81,10 @@ Route.resource('personal', 'PersonalsController')
     update: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
     destroy: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
   })
+Route.post('login', 'AuthController.auth')
+Route.post('logout', 'AuthController.logout')
+Route.post('bot', 'BotsController.index')
+
 // Route.resource('service', 'ServicesController')
 //   .apiOnly()
 //   .middleware({
@@ -96,5 +101,3 @@ Route.resource('personal', 'PersonalsController')
 //     update: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
 //     destroy: ['auth', 'checkCompanyStatus', 'checkCompanyOwner'],
 //   })
-Route.post('login', 'AuthController.auth')
-Route.post('logout', 'AuthController.logout')

@@ -60,4 +60,16 @@ export default class Company extends BaseModel {
     this.deletedAt = DateTime.local()
     await this.save()
   }
+  public static async getCompaniesForBot() {
+    const companies = await Company.query()
+      .select('id', 'name', 'main_address', 'nit')
+      .where('status', 1)
+      .andWhereNull('deleted_at')
+      .orderBy('id', 'asc')
+    let textResponse = companies.length > 0 ? 'Seleccione la empresa: \n' : 'Sin Empresas'
+    companies.forEach((e) => {
+      textResponse = textResponse + `${e.id}.- ${e.name} \n`
+    })
+    return textResponse
+  }
 }

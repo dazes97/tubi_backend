@@ -1,27 +1,9 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Branch from 'App/Models/Branch'
 import Personal from 'App/Models/Personal'
-import { ROLE_ID } from 'App/utils/roleConstant'
-import Branches from 'Database/migrations/1627422729393_branches'
-
 export default class BranchesController {
   public async index({ response, auth }: HttpContextContract) {
     try {
-      // const companyId = await Personal.getCompanyId(auth.user?.id)
-      // const branches = await Branch.query()
-      //   .where('companyId', companyId)
-      //   .preload('services', (serviceQuery) => {
-      //     //attach services to package if exists
-      //     serviceQuery.preload('services')
-      //   })
-      //   .preload('personals', (personalQuery) => {
-      //     personalQuery
-      //       .select('dni', 'id')
-      //       .where('personalTypeId', '!=', ROLE_ID.PROPIETARIO)
-      //       .preload('user', (userQuery) => {
-      //         userQuery.select('id', 'name', 'lastName', 'email')
-      //       })
-      //   })
       const branches = await Branch.getBranchPerCompany(auth.user?.id)
       response.ok({ data: branches })
     } catch (e) {

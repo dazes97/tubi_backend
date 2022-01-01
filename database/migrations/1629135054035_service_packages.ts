@@ -6,9 +6,9 @@ export default class PackageService extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.integer('package_id').unsigned().references('id').inTable('services').index()
-      table.increments('id').primary().notNullable()
+      //table.increments('id').primary().notNullable()
       table.integer('service_id').unsigned().references('id').inTable('services').index()
-      table.unique(['package_id', 'id'])
+      table.unique(['package_id', 'service_id'])
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

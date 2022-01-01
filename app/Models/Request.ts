@@ -103,6 +103,39 @@ export default class Request extends BaseModel {
     for (let i = 0; i < 5; i++) pr += ~~(Math.random() * 10)
     return pr + su
   }
+  //client API
+  public static async getRequestForTracking(requestCode: string) {
+    const requestTrackingForClient = await Database.rawQuery(
+      ` SELECT
+              to_char(r.request_delivery_date_time AT time zone 'utc' at time zone 'America/La_Paz','DD-MM-YYYY hh12:mi:ss AM') as "requestDeliveryDateTime",
+              ARRAY(
+                SELECT json_agg(service) FROM 
+                (
+                  SELECT 
+                  s.name, s.price, s.description
+                  FROM services as s 
+                  INNER JOIN request_detail as rs on rs.service_id = s.id
+                  WHERE rs.request_id = r.id
+                  ) service
+                ) as services,
+              ARRAY(
+                SELECT json_agg(statuses) FROM 
+                (
+                  SELECT 
+                 rs.status_request_id as "status", rs.observation, to_char(r.created_at AT time zone 'utc' at time zone 'America/La_Paz','DD-MM-YYYY hh12:mi:ss AM') as "date"
+                  FROM request_status as rs
+                  WHERE rs.request_id = r.id
+                  ORDER BY r.created_at DESC
+                  ) statuses
+                ) as statuses
+            FROM requests as r
+            WHERE r.request_code = ?
+            AND r.deleted_at IS NULL
+              `,
+      [requestCode]
+    )
+    return requestTrackingForClient.rowCount > 0 ? requestTrackingForClient.rows.pop() : null
+  }
   public static async getRequestPerBranch(authId: any) {
     const companyId = await Personal.getCompanyId(authId)
     const personal = await Personal.findOrFail(authId)
@@ -141,8 +174,10 @@ export default class Request extends BaseModel {
               SELECT json_agg(statuses) FROM 
               (
                 SELECT 
-                rs.request_id as "requestId", rs.status_request_id as "status", rs.observation, rs.created_at as "createdAt"
-                FROM request_status as rs 
+                rs.request_id as "requestId", rs.status_request_id as "status", rs.observation, rs.created_at as "createdAt", CONCAT (us.name, ' ', us.last_name) as "personal"
+                FROM request_status as rs
+                INNER JOIN personals pe on pe.id = rs.personal_id AND pe.deleted_at IS NULL
+                INNER JOIN users us on us.id = rs.personal_id AND us.deleted_at IS NULL
                 WHERE rs.request_id = r.id
                 ORDER BY r.created_at DESC
                 ) statuses
@@ -229,8 +264,16 @@ export default class Request extends BaseModel {
   public static async updateRequestStatus(authId: any, request: any) {
     return await Database.transaction(async (trx) => {
       try {
+        //find the persoanl to save in the records
         const personal = await Personal.findOrFail(authId)
-        const requestToUpdate = await Request.findOrFail(request.id)
+        //find the request by code
+        const requestToUpdateByCode = await Database.from('requests')
+          .where('request_code', request.requestCode)
+          .andWhere('company_id', personal.companyId)
+          .firstOrFail()
+        const requestToUpdate = await Request.findOrFail(requestToUpdateByCode.id)
+        //find the client to send notifications
+        const client = await this.findClientByRequest(requestToUpdateByCode)
         requestToUpdate.requestStatus = request.newStatus.status
         requestToUpdate.useTransaction(trx)
         await requestToUpdate.save()
@@ -251,5 +294,18 @@ export default class Request extends BaseModel {
         throw new Error()
       }
     })
+  }
+  public static async findClientByRequest(requestCode: any) {
+    const client = await Database.from('users')
+      .innerJoin('clients', 'clients.id', '=', 'users.id')
+      .innerJoin('requests', 'requests.client_id', '=', 'clients.id')
+      .where('requests.request_code', requestCode)
+      .first()
+    console.log('cliente encontrado', client)
+    return client
+  }
+  public static async sendNotificationStatusUpdateToClient(requestCode: any) {
+    const client = await this.findClientByRequest(requestCode)
+    if (!client) return
   }
 }
