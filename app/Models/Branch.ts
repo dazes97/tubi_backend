@@ -89,10 +89,29 @@ export default class Branch extends BaseModel {
       .where('company_id', companyId)
       .andWhereNull('deleted_at')
       .orderBy('id', 'asc')
-    let textResponse = branches.length > 0 ? 'Seleccione la sucursal: \n' : 'Sin sucursales'
+    let textResponse = branches.length > 0 ? 'Lista de sucursales: \n' : 'Sin sucursales'
     branches.forEach((e) => {
       textResponse = textResponse + `${e.id}.- ${e.name} ${e.address} \n`
     })
+    textResponse = textResponse + '\n Escriba "menu" para volver al menu principal '
+    return textResponse
+  }
+  public static async getAllBranchesForBot() {
+    const branches = await Database.query()
+      .from('branches as b')
+      .select('b.id', 'b.name', 'b.address', 'c.name as companyName')
+      .where('b.status', 1)
+      .andWhereNull('b.deleted_at')
+      .orderBy('b.id', 'asc')
+      .innerJoin('companies as c', 'c.id', 'b.company_id')
+    let textResponse =
+      branches.length > 0
+        ? 'Seleccione su sucursal de preferencia para ver los servicios ofertados: \n'
+        : 'Sin sucursales'
+    branches.forEach((e) => {
+      textResponse = textResponse + `${e.id}.- ${e.name} ${e.address} (${e.companyName}) \n`
+    })
+    textResponse = textResponse + '\n Escriba "menu" para volver al menu principal '
     return textResponse
   }
 

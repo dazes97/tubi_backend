@@ -74,12 +74,11 @@ export default class Service extends BaseModel {
   })
   public services: ManyToMany<typeof Service>
 
-  public static async getServicesByBranchForBot(branchId: number, companyId: number) {
+  public static async getServicesByBranchForBot(branchId: number) {
     const services = await Database.query()
       .select('s.id', 's.name', 's.price', 's.type')
       .from('services as s')
       .innerJoin('branch_service as bs', 'bs.service_id', 's.id')
-      .where('s.company_id', companyId)
       .andWhere('bs.branch_id', branchId)
       .andWhere('bs.status', '1')
       .whereNull('s.deleted_at')
@@ -93,6 +92,7 @@ export default class Service extends BaseModel {
         (e.type === '1' ? '(Servicio)' : '(Paquete)') +
         '\n'
     })
+    textResponse = textResponse + '\n Escriba Menu para volver al menu principal '
     console.log('text response: ', textResponse)
     return textResponse
   }

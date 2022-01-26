@@ -70,6 +70,7 @@ export default class Company extends BaseModel {
     companies.forEach((e) => {
       textResponse = textResponse + `${e.id}.- ${e.name} \n`
     })
+    textResponse = textResponse + '\n Escriba Menu para volver al menu principal '
     return textResponse
   }
 }
