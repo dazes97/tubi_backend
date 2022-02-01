@@ -9,6 +9,7 @@ import {
 import Database from '@ioc:Adonis/Lucid/Database'
 import Personal from './Personal'
 import Service from './Service'
+import REQUEST_CODE from 'App/utils/requestCode'
 export default class Request extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -99,12 +100,55 @@ export default class Request extends BaseModel {
     this.deletedAt = DateTime.local()
     await this.save()
   }
+  public static findStatus(item: any) {
+    switch (item.status) {
+      case REQUEST_CODE.RECEIVED.CODE:
+        return REQUEST_CODE.RECEIVED.NAME
+      case REQUEST_CODE.ACCEPTED.CODE:
+        return REQUEST_CODE.ACCEPTED.NAME
+      case REQUEST_CODE.DENIED.CODE:
+        return REQUEST_CODE.DENIED.NAME
+      case REQUEST_CODE.DELIVERED.CODE:
+        return REQUEST_CODE.DELIVERED.NAME
+      case REQUEST_CODE.FINISHED.CODE:
+        return REQUEST_CODE.FINISHED.NAME
+      case REQUEST_CODE.PROCESS.CODE:
+        return REQUEST_CODE.PROCESS.NAME
+      default:
+        return 'Sin Definir'
+    }
+  }
   public static trackingNumber(pr = 'T', su = 'R') {
     for (let i = 0; i < 5; i++) pr += ~~(Math.random() * 10)
     return pr + su
   }
   //client API
-  public static async getRequestForTracking(requestCode: string) {
+  public static async getRequestTrackingForBot(requestCode: string) {
+    let textResponse = ''
+    if (requestCode.trim().length === 0) return 'Codigo Invalido'
+    const trackingInfo = await this.getRequestTracking(requestCode.toUpperCase())
+    if (trackingInfo) {
+      textResponse += `Sucursal: ${trackingInfo.branchName} \n`
+      textResponse += `Direccion: ${trackingInfo.branchAddress} \n`
+      textResponse += `Codigo: ${requestCode.toUpperCase()} \n`
+      textResponse += 'Paquetes y servicios: \n'
+      trackingInfo.services[0].forEach((e, index) => {
+        textResponse +=
+          `${index + 1}) ${e.name}` + (e.type === '1' ? '(Servicio)' : '(Paquete)') + '\n'
+      })
+      textResponse += 'Seguimiento: \n'
+      trackingInfo.statuses[0].forEach((e, index) => {
+        textResponse +=
+          `${index + 1}) ${this.findStatus(e)} (${e.date}) \n` +
+          (e.observation.length > 0 ? `${e.observation} \n` : 'Sin observaciones \n')
+      })
+    } else {
+      textResponse += 'Sin resultados'
+    }
+    textResponse += '\n Escriba Menu para volver al menu principal '
+    return textResponse
+  }
+  public static async getRequestTracking(requestCode: string) {
     const requestTrackingForClient = await Database.rawQuery(
       ` SELECT
               to_char(r.request_delivery_date_time AT time zone 'utc' at time zone 'America/La_Paz','DD-MM-YYYY hh12:mi:ss AM') as "requestDeliveryDateTime",
@@ -112,7 +156,7 @@ export default class Request extends BaseModel {
                 SELECT json_agg(service) FROM 
                 (
                   SELECT 
-                  s.name, s.price, s.description
+                  s.name, s.price, s.type
                   FROM services as s 
                   INNER JOIN request_detail as rs on rs.service_id = s.id
                   WHERE rs.request_id = r.id
@@ -127,8 +171,11 @@ export default class Request extends BaseModel {
                   WHERE rs.request_id = r.id
                   ORDER BY r.created_at DESC
                   ) statuses
-                ) as statuses
+                ) as statuses,
+                b.name as "branchName",
+                b.address as "branchAddress"
             FROM requests as r
+            INNER JOIN branches as b ON b.id = r.branch_id AND b.deleted_at IS NULL 
             WHERE r.request_code = ?
             AND r.deleted_at IS NULL
               `,
@@ -273,7 +320,7 @@ export default class Request extends BaseModel {
           .firstOrFail()
         const requestToUpdate = await Request.findOrFail(requestToUpdateByCode.id)
         //find the client to send notifications
-        const client = await this.findClientByRequest(requestToUpdateByCode)
+        //const client = await this.findClientByRequest(requestToUpdateByCode)
         requestToUpdate.requestStatus = request.newStatus.status
         requestToUpdate.useTransaction(trx)
         await requestToUpdate.save()
